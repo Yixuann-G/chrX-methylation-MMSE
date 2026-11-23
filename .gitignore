@@ -1,0 +1,17 @@
+# Local input data and analysis outputs
+**/Input/
+**/Output/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Logs and Slurm outputs
+*.log
+slurm-*.out
+
+# macOS metadata
+.DS_Store
