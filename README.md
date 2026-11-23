@@ -1,19 +1,19 @@
 # X-Chromosome DNA Methylation and Cognitive Variation in Centenarians
 ## 1. Project overview
 
-研究对象为 Dutch 100-plus Study 百岁老人。
-使用 whole-blood PacBio methylation 数据。
-研究问题为 chrX CpG methylation 与 MMSE 的关联。
+This study includes centenarians from the Dutch 100-plus Study.
+It uses whole-blood PacBio DNA methylation data.
+It examines the association between chrX CpG methylation and MMSE scores.
 
-本 Repository 覆盖三个 Step、七个 Python 脚本。
+This repository contains three steps and seven Python scripts.
 
 ## 2. Repository structure
 
-| 目录 | 文件 | 用途 |
+| Directory | File | Purpose |
 |---|---|---|
-| 根目录 | `README.md` | 项目说明及运行顺序 |
-| 根目录 | `environment.yml` | 记录实际 `xci_0` Environment |
-| 根目录 | `.gitignore` | 排除本地数据及 Output |
+| Root directory | `README.md` | Project description and execution order |
+| Root directory | `environment.yml` | Records the actual `xci_0` environment |
+| Root directory | `.gitignore` | Excludes local data and output files |
 | `Step_1/` | `make_centenarian_sample_list.py` | Build sample list |
 | `Step_1/` | `make_chrX_methylation_matrix_centenarian.py` | Build methylation matrix |
 | `Step_1/` | `make_chrX_coverage_matrix_centenarian.py` | Build coverage matrix |
@@ -22,8 +22,9 @@
 | `Step_3/` | `run_primary_association.py` | Run Primary analysis |
 | `Step_3/` | `sex_stratified_chrX.py` | Run Female、Male analyses |
 
-`Input/` 和 `Output/` 为本地运行目录。
-实际样本数据及运行产物不 Push 至 GitHub。
+`Input/` and `Output/` are local directories used during execution.
+
+Actual sample data and generated outputs are not pushed to GitHub.
 
 `environment.yml`
 
@@ -31,28 +32,29 @@
 
 ## 3. Software environment
 
-使用 `xci_0` Environment。
+Use `xci_0` Environment。
 
-主要 Dependency：
+Main dependencies:
 
-| Dependency | 用途 |
+| Dependency | Purpose |
 |---|---|
-| Python | Run 脚本 |
-| pandas | Read、Join 和 Export 表格 |
-| NumPy | Matrix 操作 |
-| SciPy | 回归及统计检验 |
-| Matplotlib | QC plots |
+| Python | Run scripts |
+| pandas | Read, join, and export tables |
+| NumPy | Perform matrix operations |
+| SciPy | Perform regression and statistical tests |
+| Matplotlib | Generate QC plots |
 
-脚本未记录 Dependency 版本。
-实际版本须从 `xci_0` Export。
+Dependency versions are not recorded in the scripts.
 
-运行准备：
+The actual versions must be exported from the `xci_0` environment.
 
-1. Activate `xci_0`。
-2. Export 实际 Environment。
-3. Update 各脚本中的 paths。
-4. Create 本地运行目录。
-5. 按 Step_1 → Step_2 → Step_3 顺序 Run。
+Run preparation:
+
+1. Activate the `xci_0` environment.
+2. Export the actual environment configuration.
+3. Update the paths in each script.
+4. Create the local working directories.
+5. Run the scripts in order: Step_1 → Step_2 → Step_3.
 
 ```bash
 conda activate xci_0
@@ -63,107 +65,113 @@ mkdir -p Step_2/Output
 mkdir -p Step_3/Input Step_3/Output
 ```
 
-上述命令在 Repository 根目录 Run。
+Run the commands above from the repository root directory.
 
-当前脚本使用 hardcoded paths，无 CLI parameters。
-默认工作目录：
+The current scripts use hardcoded paths and do not accept CLI parameters.
+
+Default working directory:
 
 ```text
 /project/holstegelab/Share/yixuan/workflow
 ```
 
-各脚本的 paths 必须指向同一工作目录。
+All script paths must point to the same working directory.
 
 ## 4. Input data
 
-### 4.1 原始 Input
+### 4.1 Raw Inputs
 
-| Input | 必需 columns / 内容 |
+| Input | Required Columns / Content |
 |---|---|
-| `Step_1/Input/pb_samples_phenotypes_20240425.txt` | TSV；`pacbio_id`、`ID_GWAS`、`ID_100plus`、`PHENOTYPE`、`SEX` |
-| `100plus_mmse.csv` | `studysubjectid`、`harmonized_contact_nr`、`mmse_score_imputed` |
-| 每个样本的 `*.cpg.combined.bed` | 第 1、2、4、6 columns：chromosome、start、methylation、coverage |
-| `Step_3/Input/final_model_samples_correct_age_cellprops.tsv` | `pacbio_id`、`SEX`、`mmse_score_imputed`、`PC1`–`PC10`、education、age、六种 cell proportions |
+| `Step_1/Input/pb_samples_phenotypes_20240425.txt` | TSV; `pacbio_id`, `ID_GWAS`, `ID_100plus`, `PHENOTYPE`, `SEX` |
+| `100plus_mmse.csv` | `studysubjectid`, `harmonized_contact_nr`, `mmse_score_imputed` |
+| Per-sample `*.cpg.combined.bed` | Columns 1, 2, 4, and 6: chromosome, start, methylation, coverage |
+| `Step_3/Input/final_model_samples_correct_age_cellprops.tsv` | `pacbio_id`, `SEX`, `mmse_score_imputed`, `PC1`–`PC10`, education, age, and six blood cell proportions |
 
-MMSE 默认路径：
+Default MMSE path:
 
 ```text
 /project/holstegelab/Share/yaran/sample/100plus_mmse.csv
 ```
 
-BED 默认路径：
+Default BED path:
 
 ```text
 /project/holstegelab/Share/yaran/epigenetics/phased/denovo/{pacbio_id}/{pacbio_id}.cpg.combined.bed
 ```
 
-### 4.2 ID 对应与格式要求
+### 4.2 ID Mapping and Format Requirements
 
-1. 使用 `pacbio_id` Align 样本与 matrix。
-2. 使用 `ID_100plus ↔ studysubjectid` Join MMSE。
-3. `SEX` 统一使用 `F`、`M`。
-4. 各样本表中的 `pacbio_id` 必须唯一。
-5. 每个样本的 chrX `start` 必须唯一。
-6. MMSE contact 0 中，`studysubjectid` 必须唯一。
+1. Use `pacbio_id` to align samples with matrices.
+2. Join MMSE data using `ID_100plus ↔ studysubjectid`.
+3. Standardize `SEX` values as `F` and `M`.
+4. Ensure that `pacbio_id` is unique in each sample table.
+5. Ensure that chrX `start` positions are unique within each sample.
+6. Ensure that `studysubjectid` is unique among MMSE records with contact 0.
 
 ### 4.3 Step_3 covariates
 
-| 模型变量 | Input column / 规则 |
+| Model Variable | Input Column / Rule |
 |---|---|
 | MMSE | `mmse_score_imputed` |
-| Education | 优先 `education`；缺失该 column 时用 `verhage_education_level_numeric` |
-| Age | 优先 `age`；缺失该 column 时用 `age_entrance_interview` |
-| Cell proportions | `CD8T`、`CD4T`、`NK`、`Bcell`、`Mono`、`Neu` |
-| B-cell alias | 缺失 `Bcell` column 时，可用 `Bcel` |
+| Education | Prefer `education`; use `verhage_education_level_numeric` if the `education` column is absent |
+| Age | Prefer `age`; use `age_entrance_interview` if the `age` column is absent |
+| Cell proportions | `CD8T`, `CD4T`, `NK`, `Bcell`, `Mono`, `Neu` |
+| B-cell alias | Use `Bcel` if the `Bcell` column is absent |
 
-如果 Input 已含 `age`，则其值必须来自 `age_entrance_interview`。
+If the input contains an `age` column, its values must be derived from `age_entrance_interview`.
 
-七个脚本不 Build Step_3 covariate table。
-该文件须事先准备。
+The seven scripts do not build the Step_3 covariate table.
 
-### 4.4 Matrix 格式
+This file must be prepared in advance.
 
-两个原始 matrix 均为 **sample × CpG**。
+### 4.4 Matrix Format
 
-前三个 columns：
+Both raw matrices use the **sample × CpG** format.
+
+The first three columns are:
 
 ```text
 pacbio_id    ID_GWAS    ID_100plus
 ```
 
-其余 columns 为：
+The remaining columns follow the format:
 
 ```text
 chrX:{start}
 ```
 
-CpG coordinate 直接沿用 BED start。
-脚本不执行 `+1` 转换。
+CpG coordinates are taken directly from the BED `start` column.
 
-**Methylation 单位必须一致。**
+The scripts do not apply a `+1` coordinate conversion.
 
-Step_1 原样 Read BED 第 4 column。
-Step_3 将其除以 100。
-因此，Input 必须使用 0–100 的 methylation 百分数。
+**Methylation units must be consistent.**
 
-## 5. Step_1 — Sample selection and matrix construction
+Step_1 reads column 4 of the BED files without conversion.
 
-按以下顺序 Run。
-本节 Output 均位于 `Step_1/Output/`。
+Step_3 divides the methylation values by 100.
+
+Therefore, the input must contain methylation percentages on a scale of 0–100.
+
+## 5. Step_1 — Sample Selection and Matrix Construction
+
+Run the scripts in the following order.
+
+All outputs in this section are saved in `Step_1/Output/`.
 
 ### 5.1 `make_centenarian_sample_list.py`
 
-**用途：** Build 百岁老人 sample list。
+**Purpose:** Build the centenarian sample list.
 
-**Input：** phenotype TSV、MMSE CSV、BED 文件路径。
+**Input:** Phenotype TSV, MMSE CSV, and BED file paths.
 
-处理步骤：
+Processing steps:
 
-1. 保留 `PHENOTYPE == "Centenarian"`。
-2. Exclude `pacbio_id` 含 `brain` 的样本。
-3. Exclude BED 文件不存在的样本。
-4. Join `harmonized_contact_nr == "0"` 的 MMSE。
-5. Export sample list。
+1. Retain samples with `PHENOTYPE == "Centenarian"`.
+2. Exclude samples whose `pacbio_id` contains `brain`.
+3. Exclude samples with missing BED files.
+4. Join MMSE records with `harmonized_contact_nr == "0"`.
+5. Export the sample list.
 
 **Output：** `centenarian_sample_list.tsv`。
 
@@ -178,42 +186,42 @@ mmse_score_imputed
 bed_path
 ```
 
-此步保留 MMSE 缺失的样本。
+This step retains samples with missing MMSE values.
 
 ### 5.2 `make_chrX_methylation_matrix_centenarian.py`
 
-**用途：** Build 原始 chrX methylation matrix。
+**Purpose:** Build the raw chrX methylation matrix.
 
-**Input：** sample list 及其 `bed_path` 指向的 BED。
+**Input:** Sample list and the BED files specified by `bed_path`.
 
-处理步骤：
+Processing steps:
 
-1. Collect 所有样本的 chrX CpG 并集。
-2. 按 coordinate 排序。
-3. 用 BED 第 4 column Build matrix。
-4. 未观测值保留 NaN。
-5. Export methylation matrix。
+1. Collect the union of chrX CpG sites across all samples.
+2. Sort CpG sites by genomic coordinate.
+3. Build the matrix using column 4 of the BED files.
+4. Retain unobserved values as NaN.
+5. Export the methylation matrix.
 
 **Output：** `chrX_methylation_matrix.tsv`。
 
 ### 5.3 `make_chrX_coverage_matrix_centenarian.py`
 
-**用途：** Build 与 methylation 对齐的 coverage matrix。
+**Purpose:** Build a coverage matrix aligned with the methylation matrix.
 
-**Input：** sample list、methylation matrix、BED。
+**Input:** Sample list, methylation matrix, and BED files.
 
-处理步骤：
+Processing steps:
 
-1. 沿用 methylation matrix 的 sample 和 CpG 顺序。
-2. 用 BED 第 6 column Build coverage matrix。
-3. Validate coverage 为非负、有限整数。
-4. Export coverage matrix。
+1. Preserve the sample and CpG order of the methylation matrix.
+2. Build the coverage matrix using column 6 of the BED files.
+3. Validate that coverage values are non-negative, finite integers.
+4. Export the coverage matrix.
 
-**Output：** `chrX_coverage_matrix.tsv`。
+**Output:** `chrX_coverage_matrix.tsv`.
 
-两个 matrix 的 rows 和 columns 一一对应。
+The rows and columns of the two matrices correspond exactly.
 
-### 5.4 运行顺序
+### 5.4 Execution Order
 
 ```bash
 python Step_1/make_centenarian_sample_list.py
@@ -221,86 +229,74 @@ python Step_1/make_chrX_methylation_matrix_centenarian.py
 python Step_1/make_chrX_coverage_matrix_centenarian.py
 ```
 
-## 6. Step_2 — Coverage quality control
+## 6. Step_2 — Coverage Quality Control
 
-两个脚本均先 Exclude 样本 `8783353`。
-本节 Output 均位于 `Step_2/Output/`。
+Both scripts first exclude sample `8783353`.
+
+All outputs in this section are saved in `Step_2/Output/`.
 
 ### 6.1 `Coverage_and_CpG_completeness_exploration.py`
 
-**用途：** 比较 coverage 与 completeness thresholds。
+**Purpose:** Compare coverage and completeness thresholds.
 
-**Input：** coverage matrix、sample list。
+**Input:** Coverage matrix and sample list.
 
-处理步骤：
+Processing steps:
 
-1. Exclude `8783353`。
-2. Verify 剩余样本数为 247。
-3. 比较两组 coverage thresholds。
-4. 比较 completeness：50%、80%、90%。
-5. Export QC plots 和 summary。
+1. Exclude sample `8783353`.
+2. Verify that 247 samples remain.
+3. Compare two sets of coverage thresholds.
+4. Compare completeness thresholds of 50%, 80%, and 90%.
+5. Export QC plots and summary statistics.
 
-Coverage 设置：
+Coverage settings:
 
-| 模式 | Female | Male |
+| Mode | Female | Male |
 |---|---|---|
-| Same absolute threshold | 5、10、15、20× | 5、10、15、20× |
-| Sex-adjusted threshold | 5、10、15、20× | 2.5、5、7.5、10× |
+| Same absolute threshold | 5, 10, 15, 20× | 5, 10, 15, 20× |
+| Sex-adjusted threshold | 5, 10, 15, 20× | 2.5, 5, 7.5, 10× |
 
-Completeness 为达标人数除以全部 247 人。
-NaN coverage 不达标。
+Completeness is calculated as the number of samples meeting the coverage threshold divided by the total of 247 samples.
 
-**Output：**
+NaN coverage values are treated as failing the threshold.
 
-| 文件 | 内容 |
+**Output:**
+
+| File | Content |
 |---|---|
-| `QC_coverage_thresholds_247samples.png` | 各样本达标的 CpG 数 |
-| `QC_completeness_thresholds_247samples.png` | 各 threshold 组合的保留 CpG 数 |
-| `QC_threshold_summary_247samples.tsv` | 24 个组合的统计结果 |
+| `QC_coverage_thresholds_247samples.png` | Number of CpGs meeting the coverage threshold per sample |
+| `QC_completeness_thresholds_247samples.png` | Number of retained CpGs for each threshold combination |
+| `QC_threshold_summary_247samples.tsv` | Summary statistics for 24 threshold combinations |
 
 ### 6.2 `make_chrX_usable_matrix.py`
 
-**用途：** Apply 最终 QC，Export 正式分析 matrix。
+**Purpose:** Apply the final QC criteria and export the matrix for association analysis.
 
-**Input：** methylation matrix、coverage matrix、sample list。
+**Input:** Methylation matrix, coverage matrix, and sample list.
 
-处理步骤：
+Processing steps:
 
-1. Exclude `8783353`。
-2. Apply Female ≥10×、Male ≥5×。
-3. Retain coverage completeness ≥80% 的 CpGs。
-4. 将低 coverage 对应的 methylation Mask 为 NaN。
-5. 将 NaN coverage 对应的 methylation Mask 为 NaN。
-6. 保留原有 methylation NaN。
-7. Export 正式 NaN matrix。
+1. Exclude sample `8783353`.
+2. Apply coverage thresholds of Female ≥10× and Male ≥5×.
+3. Retain CpGs with coverage completeness ≥80%.
+4. Mask methylation values as NaN where coverage is below the required threshold.
+5. Mask methylation values as NaN where coverage is NaN.
+6. Preserve existing NaN methylation values.
+7. Export the final NaN matrix.
 
-**正式 Output：**
+**Final Output:**
 
 ```text
 chrX_usable_matrix_10X_80pct_NaN.tsv
 ```
 
-以 247 人计算时，至少需 198 人 coverage 达标。
+With 247 samples, at least 198 samples must meet the coverage threshold.
 
-Completeness 基于 coverage。
-它不等于非缺失 methylation 比例。
+Completeness is calculated based on coverage.
 
-**当前代码差异：**
+It is not equivalent to the proportion of non-missing methylation values.
 
-脚本随后仍执行 column-mean imputation。
-它另行 Export：
-
-```text
-chrX_usable_matrix_10X_80pct_imputed.tsv
-```
-
-该文件不用于正式 association。
-它不会覆盖已 Export 的 NaN matrix。
-
-此脚本使用实际排除后人数计算 completeness。
-它未固定 Verify 分母为 247。
-
-### 6.3 运行顺序
+### 6.3 Execution Order
 
 ```bash
 python Step_2/Coverage_and_CpG_completeness_exploration.py
@@ -309,24 +305,25 @@ python Step_2/make_chrX_usable_matrix.py
 
 ## 7. Step_3 — Association analysis
 
-两个脚本均直接 Read：
+Both scripts directly read:
 
 ```text
 Step_2/Output/chrX_usable_matrix_10X_80pct_NaN.tsv
 Step_3/Input/final_model_samples_correct_age_cellprops.tsv
 ```
 
-共同处理步骤：
+Common processing steps:
 
-1. 按 `pacbio_id` Align 两个 Input。
-2. Exclude 缺失 MMSE 或 covariates 的样本。
-3. 将 methylation 百分数除以 100。
-4. 每个 CpG 使用该位点的 complete cases。
-5. Fit 回归模型。
-6. Export 全量结果和候选结果。
+1. Align the two inputs using `pacbio_id`.
+2. Exclude samples with missing MMSE values or covariates.
+3. Divide methylation percentages by 100.
+4. Use CpG-specific complete cases for each CpG.
+5. Fit the regression model.
+6. Export the full association results and candidate results.
 
-不对 methylation 作 imputation。
-本节 Output 均位于 `Step_3/Output/`。
+No imputation is performed on methylation values.
+
+All outputs in this section are saved in `Step_3/Output/`.
 
 ### 7.1 `run_primary_association.py`
 
@@ -338,17 +335,18 @@ MMSE ~ CpG methylation + sex + age + education
        + CD8T + CD4T + NK + Bcell + Mono + Neu
 ```
 
-模型含 intercept。
-Sex 编码为 Female=0、Male=1。
+The model includes an intercept.
 
-代码要求 MMSE 与 covariates 完整的样本数为 235。
+Sex is encoded as Female = 0 and Male = 1.
 
-**Output：**
+The code requires 235 samples with complete MMSE and covariate data.
 
-| 文件 | 内容 |
+**Output:**
+
+| File | Content |
 |---|---|
-| `primary_all_CpGs.tsv` | 所有成功估计的 CpGs |
-| `Table_1_primary_suggestive_CpGs.tsv` | `P < 1e-5` 的候选，按 P 排序 |
+| `primary_all_CpGs.tsv` | All successfully estimated CpGs |
+| `Table_1_primary_suggestive_CpGs.tsv` | Candidate CpGs with `P < 1e-5`, sorted by P-value |
 
 ### 7.2 `sex_stratified_chrX.py`
 
@@ -360,69 +358,61 @@ MMSE ~ CpG methylation + age + education
        + CD8T + CD4T + NK + Bcell + Mono + Neu
 ```
 
-模型含 intercept，不含 sex。
+The model includes an intercept but excludes sex.
 
-代码要求 Input 含 1,159,396 个 CpG columns。
+The code requires the input to contain 1,159,396 CpG columns.
 
-**Output：**
+**Output:**
 
-| 文件 | 内容 |
+| File | Content |
 |---|---|
-| `female_all_CpGs.tsv` | Female 全部 CpGs |
-| `male_all_CpGs.tsv` | Male 全部 CpGs |
-| `Table_female_suggestive_CpGs.tsv` | Female `P < 1e-5` 候选 |
-| `Table_male_suggestive_CpGs.tsv` | Male `P < 1e-5` 候选 |
+| `female_all_CpGs.tsv` | All CpGs in the female analysis |
+| `male_all_CpGs.tsv` | All CpGs in the male analysis |
+| `Table_female_suggestive_CpGs.tsv` | Female candidate CpGs with `P < 1e-5` |
+| `Table_male_suggestive_CpGs.tsv` | Male candidate CpGs with `P < 1e-5` |
 
-Stratified 全量表保留无法估计的 CpG。
-这些 CpG 的统计值为 NaN。
+The full stratified result tables retain CpGs for which model estimates could not be obtained.
 
-Primary 全量表不保留无法估计的 CpG。
+The statistical values for these CpGs are recorded as NaN.
 
-### 7.3 结果 columns
+The full primary result table excludes CpGs for which model estimates could not be obtained.
 
-| Column | 含义 |
+### 7.3 Result columns
+
+| Column | Description |
 |---|---|
-| `CpG position` | CpG ID |
-| `beta` | 调整 covariates 后的 methylation 回归系数；使用 0–1 fraction 尺度 |
-| `SE` | beta 的 standard error |
-| `P-value` | 双侧 t-test 的 unadjusted P |
-| `N` | 该 CpG 的实际 complete-case 样本数 |
+| `CpG position` | CpG identifier |
+| `beta` | Methylation regression coefficient adjusted for covariates; uses the 0–1 fraction scale |
+| `SE` | Standard error of beta |
+| `P-value` | Unadjusted P-value from a two-sided t-test |
+| `N` | Actual number of complete-case samples for the CpG |
 
-N 随 CpG 改变，不等于固定 cohort size。
+N varies across CpGs and is not equal to a fixed cohort size.
 
-235 和 1,159,396 为代码中的检查值。
+The values 235 and 1,159,396 are validation checks hardcoded in the scripts.
 
-### 7.4 运行顺序
+### 7.4 Execution Order
 
 ```bash
 python Step_3/run_primary_association.py
 python Step_3/sex_stratified_chrX.py
 ```
 
-## 8. Analysis settings
+## 8. Analysis Settings
 
-| 项目 | 正式分析设置 |
+| Item | Final Analysis Setting |
 |---|---|
-| Sample QC | Exclude `8783353` |
-| Coverage | Female ≥10×；Male ≥5× |
-| Completeness | ≥80%；目标分母 247 |
-| Methylation missing values | 使用 NaN matrix；不作 imputation |
-| Association | 每个 CpG 使用 complete cases |
+| Sample QC | Exclude sample `8783353` |
+| Coverage | Female ≥10×; Male ≥5× |
+| Completeness | ≥80%; denominator of 247 samples |
+| Methylation missing values | Use the NaN matrix; no imputation |
+| Association | Use CpG-specific complete cases |
 | Age | `age_entrance_interview` |
-| Primary covariates | sex、age、education、PC1–PC10、六种 cell proportions |
-| Stratified covariates | 与 Primary 相同，去掉 sex |
-| 候选 threshold | Unadjusted `P < 1 × 10⁻⁵` |
-| 执行方式 | 一次 Load 全部 CpGs，逐位点 Fit；不分 chunk |
-| 不纳入 | variance filtering、FDR、leave-one-out、效应换算 |
+| Primary covariates | Sex, age, education, PC1–PC10, and six blood cell proportions |
+| Stratified covariates | Same as the primary model, excluding sex |
+| Candidate threshold | Unadjusted `P < 1 × 10⁻⁵` |
+| Execution method | Load all CpGs at once and fit each CpG separately; no chunking |
 
+The regression skips CpGs with insufficient samples or for which model estimates cannot be obtained.
 
-回归会跳过样本不足或无法估计的位点。
-这不属于预先的 variance filtering。
-
-## 9. Data and code availability
-
-代码范围为 Step_1–Step_3。
-不含 covariate table 的构建或后续 annotation。
-不增加 `.sh`、独立 plotting 脚本或 Step_4。
-
-原始 BED、phenotype、covariates 和样本级 matrix 不随代码公开。
+This is not equivalent to predefined variance filtering.
